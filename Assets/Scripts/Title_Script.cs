@@ -7,33 +7,95 @@ using UnityEngine.SceneManagement;
 public class Title_Script : MonoBehaviour
 {
     [SerializeField]
+    private float fadeInSequence = 5f;
+    [SerializeField]
+    private float next = 1f;
+    [SerializeField]
     private AudioSource audio;
     [SerializeField]
-    private GameObject background_1;
+    private GameObject Transition;
     [SerializeField]
-    private GameObject background_2;
-
+    private GameObject startButton;
+    [SerializeField]
+    private GameObject InstructionsButton;
+    [SerializeField]
+    private GameObject Instructions;
+    [SerializeField]
+    private Animator animator;
+    private Image crossFade;
+    private bool nextScene = false;
 
     // Start is called before the first frame update
     void Start()
     {
         //set background
-        background_1.SetActive(true);
-        background_2.SetActive(false);
+        crossFade = Transition.GetComponent<Image>();
+        crossFade.color = new Color(0f, 0f, 0f);
+        startButton.SetActive(false);
+        InstructionsButton.SetActive(false);
     }
 
     // Update is called once per frame
     void Update()
     {
-        if(!audio.isPlaying){
+        if (nextScene)
+        {
+            startButton.SetActive(false);
+            InstructionsButton.SetActive(false);
+            fadeInSequence = -1f;
+            if (animator.GetBool("Transition") && fadeInSequence == -1f)
+            {
+                animator.SetBool("Transition", false);
+            }
+            Debug.Log(animator.GetBool("Transition"));
+            if (crossFade.color == new Color(0f, 0f, 0f))
+            {
+                Debug.Log("New Cross: " + crossFade.color);
+                Debug.Log("Next: " +  next);
+                if (next >= 1f)
+                {
+                    Debug.Log("Next");
+                    SceneManager.LoadScene("SampleScene");
+                }
+                else
+                {
+                    next += Time.deltaTime;
+                }
+            }
+        }
+        //Debug.Log("Fade in: " + fadeInSequence);
+        Debug.Log("Cross fade: " + crossFade.color);
+        if (fadeInSequence > 0f)
+        {
+            fadeInSequence -= Time.deltaTime;
+            //Debug.Log("Fade in: " + fadeInSequence);
+        }
+        else if (Mathf.Round(fadeInSequence) == 0)
+        {
             //switch the two
-            background_1.SetActive(false);
-            background_2.SetActive(true);
+            //play animation
+            if (!animator.GetBool("Transition"))
+            {
+                animator.SetBool("Transition", true);
+            }
+            if (crossFade.color == new Color(1f, 1f, 1f) && !Instructions.activeInHierarchy)
+            {
+                startButton.SetActive(true);
+                if (next <= 0)
+                {
+                    InstructionsButton.SetActive(true);
+                    next = 0f;
+                }
+                else
+                {
+                    next -= Time.deltaTime;
+                }
+            }
         }
     }
 
     //on click for start button
     public void start_game(){
-        SceneManager.LoadScene("SampleScene");
+        nextScene = true;
     }
 }
